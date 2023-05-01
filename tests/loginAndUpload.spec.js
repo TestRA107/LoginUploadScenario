@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test')
 
-test('should be able to login to website with valid credentials', async ({ page }) => {
+test('should be able to login to website with valid credentials and upload profile picture', async ({ page }) => {
 
     //go to the welcome to the jungle website and check page title
     await page.goto('https://www.welcometothejungle.com/fr');
@@ -9,9 +9,7 @@ test('should be able to login to website with valid credentials', async ({ page 
 
     //click on button "Se connecter" and wait for login popup to be displayed
     await page.click('button[class="sc-grpWxK fncrht"]')
-    let popupTitleselector =await page.$("h4 span")
-    await page.waitForFunction((popupTitleselector) => popupTitleselector.innerText=="Bienvenue !", popupTitleselector,{})
-  
+    expect(page.locator("h4 span")).toHaveText("Bienvenue !")
 
     //fill the email and password then click on button "se connecter"
     await page.waitForSelector("#modal-content-home")
@@ -23,24 +21,27 @@ test('should be able to login to website with valid credentials', async ({ page 
     await page.click('button[class="sc-grpWxK fncrht"]')
     await page.type('#email_login', 'inqom.qaautomationapplicant@gmail.com')
     await page.type('#password', 'o5N,d5ZR@R7^')
-    await page.click('button[class="sc-grpWxK ipcZWy"]')
-    
+    let buttons=await page.$$("button[type='submit']")
+    for (const element of buttons){
+      let buttonText= await page.evaluate((ele)=>ele.innerText,element)
+     if(buttonText=="Se connecter" ){  
+
+        await element.click()
+       break
+    }
+    }   
    //open account page
-   await page.click('button[class="sc-1m0xnlj-0 hVSzUi"]')
+   await page.locator("button[type='button']").nth(2).click()
    await page.waitForSelector("#user-logged[open]")//check that list is opened before clicking
    await page.click('a[href="/fr/me/settings/account"]')
    await expect(page).toHaveURL(/.*account/)//check that page is displayed
    await page.waitForSelector("#avatar")
    
    
-   //upload picture using file chooser
+   //upload picture 
    let filePath = "./tests/photoProfil.jpg"
-    const [fileChooser] = await Promise.all([
-       page.waitForEvent('filechooser'),
-       page.locator("button[type='button']").nth(5).click()
-    ]);
-    await fileChooser.setFiles(filePath);
-   
+   await page.locator("input[name='avatar']").setInputFiles(filePath)
+    
    // Wait for the page to finish loading
   await page.waitForLoadState('networkidle')
 
