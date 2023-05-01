@@ -28,8 +28,7 @@ test('should be able to login to website with valid credentials and upload profi
 
         await element.click()
        break
-    }
-    }   
+    }}   
    //open account page
    await page.locator("button[type='button']").nth(2).click()
    await page.waitForSelector("#user-logged[open]")//check that list is opened before clicking
